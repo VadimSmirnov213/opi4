@@ -5,6 +5,10 @@
     const CENTER = SVG_SIZE / 2;
     const MAX_R = 4;
     const SCALE = (CENTER - 40) / MAX_R;
+    const X_MIN = -3;
+    const X_MAX = 5;
+    const Y_MIN = -2;
+    const Y_MAX = 2;
 
     let svg, areaGroup, axesGroup, pointsGroup, tempPointsGroup;
     let currentR = 2;
@@ -325,6 +329,14 @@
         
         const mathX = (svgX - CENTER) / SCALE;
         const mathY = (CENTER - svgY) / SCALE;
+
+        // Ignore clicks outside allowed coordinate input constraints.
+        if (mathX < X_MIN || mathX > X_MAX || mathY < Y_MIN || mathY > Y_MAX) {
+            if (tempPointsGroup) {
+                tempPointsGroup.innerHTML = '';
+            }
+            return;
+        }
         
         loadPointsFromTable();
         const nearestPoint = findNearestPoint(mathX, mathY);
@@ -344,9 +356,6 @@
             selectedY = Math.round(mathY);
         }
 
-        selectedX = Math.max(-3, Math.min(5, selectedX));
-        selectedY = Math.max(-2, Math.min(2, selectedY));
-        
         if (tempPointsGroup) tempPointsGroup.innerHTML = '';
         
         const dotVal = selectedX.toFixed(1);
