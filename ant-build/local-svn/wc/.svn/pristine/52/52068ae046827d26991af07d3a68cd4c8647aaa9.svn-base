@@ -1,0 +1,11 @@
+$ ./tools/apache-ant/apache-ant-1.10.17/bin/ant team
+Buildfile: /home/vadim/Documents/study_files/web/lab3/build.xml
+
+init:
+
+team:
+     [exec] SVN рабочая копия: /home/vadim/Documents/study_files/web/lab3/ant-build/local-svn/wc
+     [exec] Team archive: /home/vadim/Documents/study_files/web/lab3/ant-build/team-builds.zip
+
+BUILD SUCCESSFUL
+Total time: 14 seconds

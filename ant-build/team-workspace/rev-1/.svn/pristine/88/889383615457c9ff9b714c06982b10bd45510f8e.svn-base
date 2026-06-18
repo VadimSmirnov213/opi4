@@ -1,0 +1,13 @@
+validation.x.null=Coordinate X cannot be null
+validation.x.nan=Coordinate X must be a finite number
+validation.x.range=Coordinate X must be in range [{0}; {1}]
+
+validation.y.null=Coordinate Y cannot be null
+validation.y.nan=Coordinate Y must be a finite number
+validation.y.range=Coordinate Y must be in range [{0}; {1}]
+validation.y.integer=Coordinate Y must be an integer
+
+validation.r.null=Radius R cannot be null
+validation.r.nan=Radius R must be a finite number
+validation.r.range=Radius R must be in range [{0}; {1}]
+validation.r.step=Radius R must be multiple of {0}

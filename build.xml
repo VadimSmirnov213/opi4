@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="lab3-ant" default="build" basedir=".">
+    <description>Apache Ant build script for Web Programming Lab 3</description>
+
+    <property file="build.properties"/>
+
+    <property name="src.dir" location="${src.dir.rel}"/>
+    <property name="resources.dir" location="${resources.dir.rel}"/>
+    <property name="test.src.dir" location="${test.src.dir.rel}"/>
+    <property name="i18n.dir" location="${i18n.dir.rel}"/>
+    <property name="gradle.build.dir" location="${gradle.build.dir.rel}"/>
+    <property name="gradle.classes.dir" location="${gradle.classes.dir.rel}"/>
+    <property name="gradle.resources.dir" location="${gradle.resources.dir.rel}"/>
+    <property name="gradle.javadoc.dir" location="${gradle.javadoc.dir.rel}"/>
+
+    <property name="ant.work.dir" location="${ant.work.dir.rel}"/>
+    <property name="classes.dir" location="${classes.dir.rel}"/>
+    <property name="dist.dir" location="${dist.dir.rel}"/>
+    <property name="manifest.file" location="${manifest.file.rel}"/>
+    <property name="docs.dir" location="${docs.dir.rel}"/>
+    <property name="javadoc.dir" location="${javadoc.dir.rel}"/>
+    <property name="checksums.dir" location="${checksums.dir.rel}"/>
+    <property name="native.copy.dir" location="${native.copy.dir.rel}"/>
+    <property name="native.out.dir" location="${native.out.dir.rel}"/>
+    <property name="alt.workspace.dir" location="${alt.workspace.dir.rel}"/>
+    <property name="team.workspace.dir" location="${team.workspace.dir.rel}"/>
+
+    <property name="dist.jar" location="${dist.jar.rel}"/>
+    <property name="local.svn.repo" location="${local.svn.repo.rel}"/>
+    <property name="local.svn.wc" location="${local.svn.wc.rel}"/>
+
+    <path id="app.classpath">
+        <fileset dir="${basedir}">
+            <include name="tools/lib/**/*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="init">
+        <mkdir dir="${ant.work.dir}"/>
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${docs.dir}"/>
+        <mkdir dir="${javadoc.dir}"/>
+        <mkdir dir="${checksums.dir}"/>
+        <mkdir dir="${native.copy.dir}"/>
+        <mkdir dir="${native.out.dir}"/>
+        <mkdir dir="${alt.workspace.dir}"/>
+        <mkdir dir="${team.workspace.dir}"/>
+        <mkdir dir="${basedir}/tools"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${ant.work.dir}"/>
+        <delete file="${basedir}/${history.diff.file}"/>
+        <delete file="${basedir}/${team.zip.file}"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <exec executable="${basedir}/${gradle.wrapper}" failonerror="true">
+            <arg value="classes"/>
+        </exec>
+
+        <copy todir="${classes.dir}">
+            <fileset dir="${gradle.classes.dir}" erroronmissingdir="false"/>
+        </copy>
+        <copy todir="${classes.dir}">
+            <fileset dir="${gradle.resources.dir}" erroronmissingdir="false"/>
+        </copy>
+    </target>
+
+    <target name="manifest" depends="init">
+        <tstamp>
+            <format property="build.timestamp" pattern="yyyy-MM-dd'T'HH:mm:ssZ"/>
+        </tstamp>
+        <manifest file="${manifest.file}">
+            <attribute name="Manifest-Version" value="1.0"/>
+            <attribute name="Implementation-Title" value="${app.name}"/>
+            <attribute name="Implementation-Version" value="${app.version}"/>
+            <attribute name="Main-Class" value="${main.class}"/>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Built-Date" value="${build.timestamp}"/>
+        </manifest>
+    </target>
+
+    <target name="build" depends="compile,manifest">
+        <jar jarfile="${dist.jar}" basedir="${classes.dir}" manifest="${manifest.file}"/>
+    </target>
+
+    <target name="test" depends="build">
+        <exec executable="${basedir}/${gradle.wrapper}" failonerror="true">
+            <arg value="test"/>
+        </exec>
+    </target>
+
+    <target name="validate" depends="build">
+        <exec executable="${basedir}/${gradle.wrapper}" failonerror="true">
+            <arg value="test"/>
+            <arg value="jacocoTestReport"/>
+            <arg value="jacocoTestCoverageVerification"/>
+        </exec>
+    </target>
+
+    <target name="doc" depends="build">
+        <exec executable="${basedir}/${gradle.wrapper}" failonerror="true">
+            <arg value="javadoc"/>
+        </exec>
+        <copy todir="${javadoc.dir}">
+            <fileset dir="${gradle.javadoc.dir}" erroronmissingdir="false"/>
+        </copy>
+
+        <checksum file="${dist.jar}" algorithm="MD5" property="jar.md5"/>
+        <checksum file="${dist.jar}" algorithm="SHA-1" property="jar.sha1"/>
+        <checksum file="${dist.jar}" algorithm="MD5" fileext=".md5" todir="${checksums.dir}"/>
+        <checksum file="${dist.jar}" algorithm="SHA-1" fileext=".sha1" todir="${checksums.dir}"/>
+
+        <manifest file="${manifest.file}" mode="update">
+            <attribute name="Jar-MD5" value="${jar.md5}"/>
+            <attribute name="Jar-SHA1" value="${jar.sha1}"/>
+        </manifest>
+
+        <jar jarfile="${dist.jar}" basedir="${classes.dir}" manifest="${manifest.file}">
+            <metainf dir="${checksums.dir}">
+                <include name="${app.jar.name}.md5"/>
+                <include name="${app.jar.name}.sha1"/>
+            </metainf>
+            <zipfileset dir="${javadoc.dir}" prefix="docs/javadoc"/>
+        </jar>
+    </target>
+
+    <target name="native2ascii" depends="init">
+        <copy todir="${native.copy.dir}">
+            <fileset dir="${i18n.dir}" includes="${i18n.includes}" erroronmissingdir="false"/>
+        </copy>
+        <native2ascii encoding="${native.encoding}" src="${native.copy.dir}" dest="${native.out.dir}" includes="${i18n.includes}"/>
+    </target>
+
+    <target name="music" depends="build">
+        <exec executable="/bin/bash" failonerror="false">
+            <arg value="-lc"/>
+            <arg value="${music.command}"/>
+        </exec>
+    </target>
+
+    <target name="history" depends="init">
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="-lc"/>
+            <arg value="${basedir}/${svn.bootstrap.script} '${basedir}' '${local.svn.repo}' '${local.svn.wc}'"/>
+        </exec>
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="-lc"/>
+            <arg value="SVN_WC_DIR='${local.svn.wc}' ${basedir}/${history.script} '${basedir}' '${basedir}/${history.diff.file}' '${basedir}/${gradle.wrapper}'"/>
+        </exec>
+    </target>
+
+    <target name="team" depends="init">
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="-lc"/>
+            <arg value="${basedir}/${svn.bootstrap.script} '${basedir}' '${local.svn.repo}' '${local.svn.wc}'"/>
+        </exec>
+        <exec executable="/bin/bash" failonerror="true">
+            <arg value="-lc"/>
+            <arg value="SVN_WC_DIR='${local.svn.wc}' ${basedir}/${team.script} '${basedir}' '${team.workspace.dir}' '${team.revisions}' '${basedir}/${team.zip.file}' '${basedir}/${ant.bin}'"/>
+        </exec>
+    </target>
+
+    <target name="alt" depends="init">
+        <copy todir="${alt.workspace.dir}">
+            <fileset dir="${basedir}">
+                <patternset includes="${alt.copy.includes}"/>
+            </fileset>
+        </copy>
+
+        <replace dir="${alt.workspace.dir}" includes="${alt.replace.includes}" summary="true">
+            <replacefilter token="${alt.rename.class.from}" value="${alt.rename.class.to}"/>
+            <replacefilter token="${alt.rename.variable.match}" value="${alt.rename.variable.replace}"/>
+        </replace>
+
+        <replaceregexp byline="true" flags="g" encoding="${project.encoding}">
+            <regexp pattern="${alt.rename.regex.pattern}"/>
+            <substitution expression="${alt.rename.regex.replace}"/>
+            <fileset dir="${alt.workspace.dir}" includes="${alt.replace.includes}"/>
+        </replaceregexp>
+
+        <move
+            file="${alt.workspace.dir}/${src.dir.rel}/org/example/service/${alt.rename.class.from}.java"
+            tofile="${alt.workspace.dir}/${src.dir.rel}/org/example/service/${alt.rename.class.to}.java"
+            failonerror="false"/>
+
+        <exec executable="/bin/bash" dir="${alt.workspace.dir}" failonerror="true">
+            <arg value="-lc"/>
+            <arg value="chmod +x ./gradlew &amp;&amp; ${basedir}/${ant.bin} build"/>
+        </exec>
+
+        <copy file="${alt.workspace.dir}/${dist.jar.rel}" tofile="${dist.dir}/${app.alt.jar.name}" overwrite="true"/>
+    </target>
+</project>

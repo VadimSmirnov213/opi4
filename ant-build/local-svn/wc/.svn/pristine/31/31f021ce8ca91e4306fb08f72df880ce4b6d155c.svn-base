@@ -1,0 +1,12 @@
+$ ./tools/apache-ant/apache-ant-1.10.17/bin/ant history
+Buildfile: /home/vadim/Documents/study_files/web/lab3/build.xml
+
+init:
+
+history:
+     [exec] SVN рабочая копия: /home/vadim/Documents/study_files/web/lab3/ant-build/local-svn/wc
+     [exec] Последняя рабочая ревизия: 1
+     [exec] Diff сохранен в: /home/vadim/Documents/study_files/web/lab3/ant-build/history-last-failed.diff
+
+BUILD SUCCESSFUL
+Total time: 4 seconds

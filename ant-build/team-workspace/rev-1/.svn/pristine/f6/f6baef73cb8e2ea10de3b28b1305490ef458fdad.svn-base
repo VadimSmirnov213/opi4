@@ -1,0 +1,32 @@
+$ ./tools/apache-ant/apache-ant-1.10.17/bin/ant test
+Buildfile: /home/vadim/Documents/study_files/web/lab3/build.xml
+
+init:
+
+compile:
+     [exec] > Task :compileJava UP-TO-DATE
+     [exec] > Task :processResources UP-TO-DATE
+     [exec] > Task :classes UP-TO-DATE
+     [exec] 
+     [exec] BUILD SUCCESSFUL in 765ms
+     [exec] 2 actionable tasks: 2 up-to-date
+
+manifest:
+
+build:
+      [jar] Building jar: /home/vadim/Documents/study_files/web/lab3/ant-build/dist/lab3.jar
+
+test:
+     [exec] > Task :compileJava UP-TO-DATE
+     [exec] > Task :processResources UP-TO-DATE
+     [exec] > Task :classes UP-TO-DATE
+     [exec] > Task :compileTestJava UP-TO-DATE
+     [exec] > Task :processTestResources NO-SOURCE
+     [exec] > Task :testClasses UP-TO-DATE
+     [exec] > Task :test UP-TO-DATE
+     [exec] 
+     [exec] BUILD SUCCESSFUL in 762ms
+     [exec] 4 actionable tasks: 4 up-to-date
+
+BUILD SUCCESSFUL
+Total time: 2 seconds
