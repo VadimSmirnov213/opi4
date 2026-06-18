@@ -31,6 +31,7 @@
                 <div class="field slider-field">
                     <label for="ySlider">Текущее значение: <h:outputText id="yValue" value="#{pointRequestDto.y != null ? pointRequestDto.y.intValue() : 0}"/></label>
                     <h:inputHidden id="yHidden" value="#{pointRequestDto.y}"/>
+                    <h:inputHidden id="graphClickHidden" value="#{pointRequestDto.graphClick}"/>
                     <input type="range" id="ySlider" min="-2" max="2" step="1" 
                            value="#{pointRequestDto.y != null ? pointRequestDto.y.intValue() : 0}"
                            class="slider-control" oninput="updateYValue(this.value)"/>
@@ -53,7 +54,7 @@
                     <p:commandButton id="checkButton" value="Проверить" 
                                      action="#{pointController.checkPoint()}"
                                      update="resultsTable messages"
-                                     oncomplete="updateGraph(true);"
+                                     oncomplete="resetGraphClickFlag(); updateGraph(true);"
                                      process="@form"/>
                     <p:commandButton id="clearButton" value="Сбросить" 
                                      action="#{resultsController.clear()}"

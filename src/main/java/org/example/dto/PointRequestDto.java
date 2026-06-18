@@ -13,6 +13,7 @@ public class PointRequestDto implements Serializable {
     private Double x = null;
     private Double y = null;
     private Double r = 2.0;
+    private Boolean graphClick = false;
 
     public PointRequestDto() {
     }
@@ -54,8 +55,16 @@ public class PointRequestDto implements Serializable {
         this.r = r;
     }
 
+    public Boolean getGraphClick() {
+        return graphClick;
+    }
+
+    public void setGraphClick(Boolean graphClick) {
+        this.graphClick = graphClick;
+    }
+
     @Override
     public String toString() {
-        return "PointRequestDto(x=" + x + ", y=" + y + ", r=" + r + ")";
+        return "PointRequestDto(x=" + x + ", y=" + y + ", r=" + r + ", graphClick=" + graphClick + ")";
     }
 }

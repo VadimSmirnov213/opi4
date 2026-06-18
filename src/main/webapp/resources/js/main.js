@@ -5,14 +5,11 @@
     const CENTER = SVG_SIZE / 2;
     const MAX_R = 4;
     const SCALE = (CENTER - 40) / MAX_R;
-    const X_MIN = -3;
-    const X_MAX = 5;
-    const Y_MIN = -2;
-    const Y_MAX = 2;
 
     let svg, areaGroup, axesGroup, pointsGroup, tempPointsGroup;
     let currentR = 2;
     let storedPoints = [];
+    let graphSubmitInProgress = false;
 
     function toSvgX(x) {
         return CENTER + x * SCALE;
@@ -188,6 +185,24 @@
                document.querySelector('input[name="pointForm:rHidden"]');
     }
 
+    function findGraphClickElement() {
+        return document.querySelector('#pointForm\\:graphClickHidden') ||
+               document.querySelector('#pointForm\\:graphClickHidden_input') ||
+               document.querySelector('input[name="pointForm:graphClickHidden"]');
+    }
+
+    function setGraphClickFlag(value) {
+        const graphClickEl = findGraphClickElement();
+        if (graphClickEl) {
+            setElementValueAndTrigger(graphClickEl, value ? 'true' : 'false');
+        }
+    }
+
+    function resetGraphClickFlag() {
+        graphSubmitInProgress = false;
+        setGraphClickFlag(false);
+    }
+
     function loadPointsFromTable() {
         storedPoints = [];
         let table = document.querySelector('#resultsTable tbody') ||
@@ -330,14 +345,6 @@
         const mathX = (svgX - CENTER) / SCALE;
         const mathY = (CENTER - svgY) / SCALE;
 
-        // Ignore clicks outside allowed coordinate input constraints.
-        if (mathX < X_MIN || mathX > X_MAX || mathY < Y_MIN || mathY > Y_MAX) {
-            if (tempPointsGroup) {
-                tempPointsGroup.innerHTML = '';
-            }
-            return;
-        }
-        
         loadPointsFromTable();
         const nearestPoint = findNearestPoint(mathX, mathY);
         let selectedX, selectedY;
@@ -423,6 +430,8 @@
 
         const checkButton = document.querySelector('#pointForm\\:checkButton');
         if (checkButton) {
+            graphSubmitInProgress = true;
+            setGraphClickFlag(true);
             setTimeout(() => {
                 const finalXInput = findXInputElement();
                 const finalYInput = findHiddenYElement();
@@ -439,6 +448,9 @@
                 }
                 
                 checkButton.click();
+                setTimeout(() => {
+                    graphSubmitInProgress = false;
+                }, 0);
             }, 100);
         }
     }
@@ -536,6 +548,7 @@
     window.updateYValue = updateYValue;
     window.updateRValue = updateRValue;
     window.updateGraph = updateGraph;
+    window.resetGraphClickFlag = resetGraphClickFlag;
 
     function init() {
         svg = document.getElementById('areaSvg');
@@ -564,6 +577,7 @@
             updateYValue(yVal);
             setElementValueAndTrigger(yHidden, yVal);
         }
+        setGraphClickFlag(false);
         
         if (rHidden && rSlider) {
             const rVal = rHidden.value || 2;
@@ -578,6 +592,9 @@
         const checkButton = document.querySelector('#pointForm\\:checkButton');
         if (checkButton) {
             checkButton.addEventListener('click', function () {
+                if (!graphSubmitInProgress) {
+                    setGraphClickFlag(false);
+                }
                 const xInput = findXInputElement();
                 const yHidden = findHiddenYElement();
                 const xVal = xInput ? parseFloat(xInput.value) : NaN;

@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.entity.PointEntity;
 import org.example.exception.ExceptionHandler;
+import org.example.monitoring.MBeanRegistrar;
 import org.example.repository.ResultsRepository;
 
 import javax.annotation.PostConstruct;
@@ -21,10 +22,14 @@ public class ResultsController {
     @Inject
     private ExceptionHandler exceptionHandler;
 
+    @Inject
+    private MBeanRegistrar mBeanRegistrar;
+
     private List<PointEntity> results = Collections.emptyList();
 
     @PostConstruct
     public void init() {
+        mBeanRegistrar.ensureRegistered();
         try {
             loadResults();
         } catch (Exception e) {

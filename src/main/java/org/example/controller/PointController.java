@@ -3,6 +3,8 @@ package org.example.controller;
 import org.example.dto.PointRequestDto;
 import org.example.entity.PointEntity;
 import org.example.exception.ExceptionHandler;
+import org.example.monitoring.MBeanRegistrar;
+import org.example.monitoring.PointMetricsService;
 import org.example.service.PointService;
 
 import javax.enterprise.context.RequestScoped;
@@ -27,8 +29,24 @@ public class PointController {
     @Inject
     private ExceptionHandler exceptionHandler;
 
+    @Inject
+    private PointMetricsService pointMetricsService;
+
+    @Inject
+    private MBeanRegistrar mBeanRegistrar;
+
     public String checkPoint() {
+        mBeanRegistrar.ensureRegistered();
         FacesContext facesContext = FacesContext.getCurrentInstance();
+        Double x = pointRequestDto.getX();
+        Double y = pointRequestDto.getY();
+
+        if (Boolean.TRUE.equals(pointRequestDto.getGraphClick())) {
+            pointMetricsService.recordGraphClick();
+        }
+        if (pointMetricsService.isOutsideDisplay(x, y) && x != null && y != null) {
+            pointMetricsService.recordOutOfBounds(x, y);
+        }
 
         if (facesContext != null) {
             facesContext.addMessage(
@@ -43,6 +61,7 @@ public class PointController {
 
         try {
             PointEntity entity = pointService.processPoint(pointRequestDto);
+            pointMetricsService.recordSavedPoint(Boolean.TRUE.equals(entity.getHit()));
             resultsController.loadResults();
 
             if (facesContext != null) {
@@ -63,6 +82,8 @@ public class PointController {
             }
         } catch (Exception e) {
             exceptionHandler.handleAndAddToContext(e);
+        } finally {
+            pointRequestDto.setGraphClick(false);
         }
 
         return null;
