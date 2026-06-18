@@ -1,8 +1,0 @@
-$ ./tools/apache-ant/apache-ant-1.10.17/bin/ant clean
-Buildfile: /home/vadim/Documents/study_files/web/lab3/build.xml
-
-clean:
-   [delete] Deleting directory /home/vadim/Documents/study_files/web/lab3/ant-build
-
-BUILD SUCCESSFUL
-Total time: 0 seconds

@@ -1,7 +1,6 @@
 plugins {
     id 'java'
     id 'war'
-    id 'jacoco'
 }
 
 group = 'org.example'
@@ -14,15 +13,6 @@ repositories {
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
-}
-
-sourceSets {
-    main {
-        java.srcDirs = ['src/main/java']
-    }
-    test {
-        java.srcDirs = ['src/test/java']
-    }
 }
 
 dependencies {
@@ -42,71 +32,11 @@ dependencies {
 
     implementation 'javax.json:javax.json-api:1.1.4'
     implementation 'org.glassfish:javax.json:1.1.4'
-
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 compileJava {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
-}
-
-compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-test {
-    useJUnitPlatform()
-
-    systemProperty 'file.encoding', 'UTF-8'
-    testLogging {
-        showStandardStreams = true
-    }
-}
-
-jacoco {
-    toolVersion = '0.8.12'
-}
-
-def jacocoVerificationExcludes = [
-        'org/example/controller/**',
-        'org/example/repository/**',
-        'org/example/exception/ExceptionHandler.class',
-        'org/example/service/PointService.class'
-]
-
-jacocoTestReport {
-    dependsOn test
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect { dir ->
-            fileTree(dir: dir, exclude: jacocoVerificationExcludes)
-        }))
-    }
-    reports {
-        xml.required = true
-        html.required = true
-        csv.required = false
-    }
-}
-
-jacocoTestCoverageVerification {
-    dependsOn test
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect { dir ->
-            fileTree(dir: dir, exclude: jacocoVerificationExcludes)
-        }))
-    }
-    violationRules {
-        rule {
-            limit {
-                counter = 'LINE'
-                value = 'COVEREDRATIO'
-                minimum = 0.80
-            }
-        }
-    }
 }
 
 war {

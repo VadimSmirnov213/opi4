@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.10.17
-Created-By: 17.0.18+8-Ubuntu-124.04.1 (Ubuntu)
-Implementation-Title: lab3
-Implementation-Version: 1.0.0
-Main-Class: org.example.Main
-Built-By: vadim
-Built-Date: 2026-05-16T16:17:51+0300
-

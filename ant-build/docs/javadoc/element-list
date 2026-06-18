@@ -1,9 +1,0 @@
-org.example
-org.example.controller
-org.example.dto
-org.example.entity
-org.example.exception
-org.example.i18n
-org.example.repository
-org.example.service
-org.example.validation
