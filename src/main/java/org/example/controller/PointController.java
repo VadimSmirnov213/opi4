@@ -41,9 +41,6 @@ public class PointController {
         Double x = pointRequestDto.getX();
         Double y = pointRequestDto.getY();
 
-        if (Boolean.TRUE.equals(pointRequestDto.getGraphClick())) {
-            pointMetricsService.recordGraphClick();
-        }
         if (pointMetricsService.isOutsideDisplay(x, y) && x != null && y != null) {
             pointMetricsService.recordOutOfBounds(x, y);
         }

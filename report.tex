@@ -1,0 +1,294 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{fancyvrb}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\geometry{left=25mm,right=15mm,top=20mm,bottom=20mm}
+\setstretch{1.2}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+\textbf{Федеральное государственное образовательное учреждение высшего образования}\\
+\textbf{<<Национальный исследовательский университет ИТМО>>}\\[1.5cm]
+
+Факультет программной инженерии и компьютерной техники\\
+Дисциплина <<ОПИ>>\\[2.5cm]
+
+\textbf{\Large Отчёт по лабораторной работе №3}\\[0.3cm]
+\textbf{\Large Сценарий сборки Apache Ant}\\[0.8cm]
+\normalsize
+Тема: компиляция, тестирование и упаковка проекта в jar-архив\\
+с дополнительными целями автоматизации
+\end{center}
+
+\vfill
+
+\begin{flushright}
+\textbf{Выполнил:}\\
+Смирнов Вадим Константинович\\
+Группа: P3119\\[0.7cm]
+
+\textbf{Проверил: Ермаков М.К.}\\
+\underline{\hspace{6cm}}
+\end{flushright}
+
+\vfill
+
+\begin{center}
+г. Санкт-Петербург\\
+2026
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Цель и постановка работы}
+Цель лабораторной работы --- освоить средства мониторинга и профилирования JVM-приложения
+на примере web-приложения из лабораторной работы №3 по дисциплине <<Веб-программирование>>.
+
+В рамках работы требовалось:
+\begin{itemize}
+    \item реализовать два MBean-класса для пользовательских метрик;
+    \item выполнить мониторинг приложения в JConsole;
+    \item выполнить мониторинг и анализ памяти в VisualVM;
+    \item локализовать и устранить проблему производительности и зафиксировать алгоритм действий.
+\end{itemize}
+
+\section{Реализация MBean-классов}
+
+\subsection{MBean для подсчета точек и оповещений}
+Реализован MBean \texttt{PointCountersMBean} с атрибутами:
+\begin{itemize}
+    \item \texttt{TotalPoints} --- общее число сохраненных точек;
+    \item \texttt{HitPoints} --- число попаданий в область;
+    \item \texttt{OutOfBoundsEvents} --- число выходов координат за отображаемую область.
+\end{itemize}
+
+Класс \texttt{PointCounters} наследует \texttt{NotificationBroadcasterSupport} и отправляет JMX-оповещение
+типа \texttt{org.example.point.outOfBounds} при попытке поставить точку вне диапазона
+отображаемой плоскости.
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 1 --- код/структура \texttt{PointCountersMBean} и \texttt{PointCounters}\\
+(вставить изображение)
+}}
+\caption{Реализация MBean для счетчиков точек}
+\end{figure}
+
+\subsection{MBean для процента попаданий}
+Реализован MBean \texttt{HitRatioMBean} с атрибутами:
+\begin{itemize}
+    \item \texttt{HitPercent} --- процент попаданий;
+    \item \texttt{TotalClicks} --- общее число кликов по координатной плоскости.
+\end{itemize}
+
+Формула расчета:
+\[
+HitPercent = \frac{HitPoints}{TotalClicks} \cdot 100\%
+\]
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 2 --- код \texttt{HitRatioMBean} и \texttt{HitRatio}\\
+(вставить изображение)
+}}
+\caption{Реализация MBean для отношения попаданий}
+\end{figure}
+
+\subsection{Интеграция в приложение}
+Для регистрации MBean в \texttt{PlatformMBeanServer} используется класс \texttt{MBeanRegistrar}.
+Регистрация выполняется по именам:
+\begin{itemize}
+    \item \texttt{org.example.monitoring:type=PointCounters};
+    \item \texttt{org.example.monitoring:type=HitRatio}.
+\end{itemize}
+
+Сервис \texttt{PointMetricsService} хранит счетчики (\texttt{AtomicLong}) и инкапсулирует бизнес-метрики.
+В \texttt{PointController} при обработке запроса фиксируются:
+\begin{itemize}
+    \item клик по графику;
+    \item сохранение точки и признак попадания;
+    \item событие выхода координат за границы отображаемой области.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 3 --- регистрация MBean в \texttt{MBeanRegistrar} и вызовы в \texttt{PointController}\\
+(вставить изображение)
+}}
+\caption{Подключение метрик к пользовательскому сценарию}
+\end{figure}
+
+\section{Мониторинг в JConsole}
+
+\subsection{Ход выполнения}
+\begin{enumerate}
+    \item Запущено web-приложение и подключена утилита JConsole к JVM-процессу.
+    \item Вкладка \texttt{MBeans}: проверено наличие \texttt{PointCounters} и \texttt{HitRatio}.
+    \item Выполнены действия в приложении (клики, попадания и выходы за область).
+    \item Сняты значения атрибутов MBean.
+    \item Во вкладке \texttt{Runtime} зафиксировано время с момента запуска JVM.
+\end{enumerate}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 4 --- подключение JConsole к процессу приложения\\
+(вставить изображение)
+}}
+\caption{Подключение JConsole}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 5 --- значения атрибутов \texttt{PointCounters} и \texttt{HitRatio} в JConsole\\
+(вставить изображение)
+}}
+\caption{Показания MBean в JConsole}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 6 --- вкладка Runtime (Uptime в миллисекундах)\\
+(вставить изображение)
+}}
+\caption{Время работы JVM}
+\end{figure}
+
+\subsection{Зафиксированные значения}
+\begin{itemize}
+    \item \texttt{TotalClicks}: \underline{\hspace{5cm}}
+    \item \texttt{TotalPoints}: \underline{\hspace{5cm}}
+    \item \texttt{HitPoints}: \underline{\hspace{5cm}}
+    \item \texttt{OutOfBoundsEvents}: \underline{\hspace{5cm}}
+    \item \texttt{HitPercent}: \underline{\hspace{5cm}}
+    \item \texttt{Uptime, ms}: \underline{\hspace{5cm}}
+\end{itemize}
+
+\section{Мониторинг и профилирование в VisualVM}
+
+\subsection{Графики изменения MBean-метрик}
+В VisualVM выполнено подключение к приложению и добавлен плагин JMX (при необходимости).
+Во время работы с интерфейсом приложения снят график изменения метрик:
+\texttt{TotalClicks}, \texttt{TotalPoints}, \texttt{HitPoints}, \texttt{OutOfBoundsEvents}, \texttt{HitPercent}.
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 7 --- график изменения MBean-показаний во времени в VisualVM\\
+(вставить изображение)
+}}
+\caption{Динамика пользовательских метрик}
+\end{figure}
+
+\subsection{Анализ памяти}
+С помощью профайлера памяти VisualVM получен heap histogram и определены:
+\begin{itemize}
+    \item класс, объекты которого занимают наибольший объем памяти;
+    \item пользовательский класс, чьи экземпляры удерживают данные объекты.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 8 --- heap histogram (класс с максимальным объемом)\\
+(вставить изображение)
+}}
+\caption{Результат анализа распределения памяти}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 9 --- путь удержания/ссылка на пользовательский класс\\
+(вставить изображение)
+}}
+\caption{Связь с пользовательским классом}
+\end{figure}
+
+\subsection{Зафиксированные результаты}
+\begin{itemize}
+    \item Класс с наибольшим объемом памяти: \underline{\hspace{7cm}}
+    \item Пользовательский класс-владелец: \underline{\hspace{7cm}}
+    \item Краткий комментарий: \underline{\hspace{7cm}}
+\end{itemize}
+
+\section{Локализация и устранение проблемы производительности}
+
+\subsection{Описание выявленной проблемы}
+В ходе профилирования выявлена проблема производительности:
+\underline{\hspace{12cm}}
+\newline
+\underline{\hspace{12cm}}
+\newline
+\underline{\hspace{12cm}}
+
+\subsection{Способ устранения}
+Для устранения проблемы были выполнены следующие действия:
+\begin{enumerate}
+    \item \underline{\hspace{11cm}}
+    \item \underline{\hspace{11cm}}
+    \item \underline{\hspace{11cm}}
+\end{enumerate}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 10 --- профилирование до исправления (узкое место)\\
+(вставить изображение)
+}}
+\caption{Состояние до оптимизации}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 11 --- изменения в коде, устраняющие проблему\\
+(вставить изображение)
+}}
+\caption{Внесенные исправления}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox[c][6.2cm][c]{0.9\textwidth}{\centering
+Скриншот 12 --- профилирование после исправления\\
+(вставить изображение)
+}}
+\caption{Состояние после оптимизации}
+\end{figure}
+
+\subsection{Алгоритм локализации проблемы}
+\begin{enumerate}
+    \item Запуск приложения и подключение профайлера VisualVM/IDE.
+    \item Воспроизведение пользовательского сценария с характерной нагрузкой.
+    \item Снятие CPU и heap snapshot.
+    \item Выделение методов/классов с наибольшими затратами времени или памяти.
+    \item Проверка причин (частота вызовов, аллокации, лишние операции).
+    \item Внесение изменений в код и повторный замер на тех же действиях.
+    \item Сравнение результатов <<до/после>> и фиксация улучшений.
+\end{enumerate}
+
+\section{Вывод}
+В ходе лабораторной работы реализованы и подключены два MBean-класса для пользовательских метрик,
+проведен мониторинг в JConsole и VisualVM, а также выполнены действия по выявлению и устранению
+проблемы производительности. Полученные результаты подтверждают корректность работы JMX-мониторинга
+и применимость инструментов профилирования для анализа web-приложений на JVM.
+
+\end{document}

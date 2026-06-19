@@ -5,8 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @ApplicationScoped
 public class PointMetricsService {
-    private static final double DISPLAY_MIN = -4.0;
-    private static final double DISPLAY_MAX = 4.0;
+    private static final double DISPLAY_LIMIT = 5.0;
 
     private final AtomicLong totalClicks = new AtomicLong(0);
     private final AtomicLong totalPoints = new AtomicLong(0);
@@ -19,11 +18,8 @@ public class PointMetricsService {
         this.outOfBoundsNotifier = notifier;
     }
 
-    public void recordGraphClick() {
-        totalClicks.incrementAndGet();
-    }
-
     public void recordSavedPoint(boolean hit) {
+        totalClicks.incrementAndGet();
         totalPoints.incrementAndGet();
         if (hit) {
             hitPoints.incrementAndGet();
@@ -42,7 +38,7 @@ public class PointMetricsService {
         if (x == null || y == null) {
             return false;
         }
-        return x < DISPLAY_MIN || x > DISPLAY_MAX || y < DISPLAY_MIN || y > DISPLAY_MAX;
+        return Math.abs(x) > DISPLAY_LIMIT || Math.abs(y) > DISPLAY_LIMIT;
     }
 
     public long getTotalClicks() {

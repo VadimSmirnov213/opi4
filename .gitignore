@@ -45,3 +45,4 @@ report-logs/
 
 ### Mac OS ###
 .DS_Store
+/HttpUnit/nbproject/private/
